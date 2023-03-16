@@ -1,7 +1,7 @@
-package 
+package com.kotlineering.ksoc.server
 
 import io.ktor.server.application.*
-import .plugins.*
+import com.kotlineering.ksoc.server.plugins.*
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)

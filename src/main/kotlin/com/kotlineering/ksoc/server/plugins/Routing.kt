@@ -1,4 +1,4 @@
-package .plugins
+package com.kotlineering.ksoc.server.plugins
 
 import io.ktor.server.routing.*
 import io.ktor.server.response.*

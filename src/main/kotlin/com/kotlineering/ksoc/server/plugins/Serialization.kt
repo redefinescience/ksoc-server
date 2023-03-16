@@ -1,4 +1,4 @@
-package .plugins
+package com.kotlineering.ksoc.server.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*

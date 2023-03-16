@@ -1,4 +1,4 @@
-package .plugins
+package com.kotlineering.ksoc.server.plugins
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
