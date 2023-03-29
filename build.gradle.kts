@@ -38,7 +38,7 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
     implementation("io.ktor:ktor-client-apache:$ktor_version")
     implementation("io.insert-koin:koin-core:3.3.2")
-
+    implementation("org.xerial:sqlite-jdbc:3.30.1")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
