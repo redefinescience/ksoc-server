@@ -6,6 +6,6 @@ import com.kotlineering.ksoc.server.web.controllers.LoginController
 import org.koin.dsl.module
 
 fun serviceModule() = module {
-    single { LoginService() }
+    single { LoginService(get()) }
     single { UserService() }
 }

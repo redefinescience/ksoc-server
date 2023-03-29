@@ -1,9 +1,9 @@
 package com.kotlineering.ksoc.server.web.controllers
 
 import com.kotlineering.ksoc.server.domain.service.LoginService
-import com.kotlineering.ksoc.server.domain.service.UserService
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,15 +15,10 @@ data class LoginFrom(
 
 class LoginController(
     private val loginService: LoginService,
-    private val userService: UserService
 ) {
-
-    suspend fun login(call: ApplicationCall) = call.receive<LoginFrom>().let { param ->
-        when(param.type) {
-            "microsoft" -> loginService.idTokenFromMicrosoft(param.code)
-            else -> null
-        }
-    }?.let { idToken ->
-        // Check if in db, create user if not
+    suspend fun login(call: ApplicationCall) = call.receive<LoginFrom>().let {
+        loginService.loginWithOidcCode(it.type, it.code)?.let {
+            call.respond(200)
+        } ?: call.respond(400)
     }
 }
