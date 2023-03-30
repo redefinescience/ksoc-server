@@ -1,8 +1,7 @@
 package com.kotlineering.ksoc.server.domain.repository
 
-import org.jetbrains.exposed.sql.ForeignKeyConstraint
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 data class User(
@@ -45,5 +44,33 @@ internal object UsersInfo : Table() {
             ReferenceOption.CASCADE,
             null
         )
+    }
+}
+
+class UserRepository {
+    init {
+        transaction {
+            SchemaUtils.create(Users)
+            SchemaUtils.create(UsersInfo)
+        }
+    }
+
+    fun getOrCreateUserId(
+        iss: String, sub: String
+    ): String = transaction {
+        Users.select {
+            Users.oidIss eq iss
+            Users.oidSub eq sub
+        }.map {
+            it[Users.id].toString()
+        }.firstOrNull() ?: let {
+            val uuid = UUID.randomUUID()
+            Users.insert { row ->
+                row[id] = uuid
+                row[oidIss] = iss
+                row[oidSub] = sub
+            }
+            return@let uuid.toString()
+        }
     }
 }

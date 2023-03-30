@@ -23,40 +23,8 @@ TransactionManager.manager.defaultIsolationLevel =
 implementation("org.xerial:sqlite-jdbc:3.30.1")
  */
 fun Application.configureDatabases() {
-    val database = Database.connect("jdbc:sqlite:/sqlite/data.db", "org.sqlite.JDBC")
+    val database = Database.connect("jdbc:sqlite:./data.db", "org.sqlite.JDBC")
     TransactionManager.manager.defaultIsolationLevel =
         Connection.TRANSACTION_SERIALIZABLE
 
-    val userService = UserService(database)
-    routing {
-        // Create user
-        post("/users") {
-            val user = call.receive<User>()
-            val id = userService.create(user)
-            call.respond(HttpStatusCode.Created, id)
-        }
-        // Read user
-        get("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = userService.read(id)
-            if (user != null) {
-                call.respond(HttpStatusCode.OK, user)
-            } else {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        }
-        // Update user
-        put("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = call.receive<User>()
-            userService.update(id, user)
-            call.respond(HttpStatusCode.OK)
-        }
-        // Delete user
-        delete("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            userService.delete(id)
-            call.respond(HttpStatusCode.OK)
-        }
-    }
 }

@@ -19,9 +19,10 @@ class LoginRemoteApi {
     private fun getClient() = getKoin().get<HttpClient>(named("json"))
 
     suspend fun idTokenFromMicrosoft(code: String) = getClient().submitForm(
+        // TODO: Create class (with get() accessors) for some of these values, inject it
+        // And provide a way to update the values with server running
         url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
         formParameters = Parameters.build {
-            // TODO: Create class (with get() accessors) for some of these values, inject it
             append("client_id", "9136b230-9139-446a-850d-9a72f7ed6a40")
             append("scope", "openid")
             append("code", code)
