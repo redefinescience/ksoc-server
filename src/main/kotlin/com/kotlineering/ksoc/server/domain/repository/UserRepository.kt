@@ -92,7 +92,7 @@ class UserRepository {
         userId: UUID
     ): UserInfo? = transaction {
         UsersInfo.select {
-            Users.id eq userId
+            UsersInfo.id eq userId
         }.firstOrNull()?.let {
             UserInfo.fromResultRow(it)
         }
