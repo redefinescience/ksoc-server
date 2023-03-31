@@ -3,7 +3,7 @@ package com.kotlineering.ksoc.server
 import com.kotlineering.ksoc.server.koin.initKoin
 import io.ktor.server.application.*
 import com.kotlineering.ksoc.server.plugins.*
-import com.kotlineering.ksoc.server.web.login
+import com.kotlineering.ksoc.server.web.auth
 import io.ktor.server.routing.*
 import org.koin.core.Koin
 
@@ -21,6 +21,6 @@ fun Application.module() {
     configureDatabases()
 
     routing {
-        login(getKoin().get())
+        auth(getKoin().get())
     }
 }

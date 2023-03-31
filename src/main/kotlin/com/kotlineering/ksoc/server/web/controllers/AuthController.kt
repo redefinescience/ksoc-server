@@ -2,7 +2,7 @@ package com.kotlineering.ksoc.server.web.controllers
 
 import com.kotlineering.ksoc.server.domain.repository.UserInfo
 import com.kotlineering.ksoc.server.domain.service.ServiceResult
-import com.kotlineering.ksoc.server.domain.service.LoginService
+import com.kotlineering.ksoc.server.domain.service.AuthService
 import com.kotlineering.ksoc.server.util.InstantSerializer
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -28,15 +28,24 @@ data class AuthInfo(
     val userInfo: UserInfo?
 )
 
-class LoginController(
-    private val loginService: LoginService,
+class AuthController(
+    private val authService: AuthService,
 ) {
-    suspend fun login(call: ApplicationCall) = call.receive<LoginRequest>().let { req ->
-        loginService.loginWithOidcCode(req.type, req.code).let { res ->
+    suspend fun authorizeUser(call: ApplicationCall) = call.receive<LoginRequest>().let { req ->
+        authService.loginWithOidcCode(req.type, req.code).let { res ->
             when (res) {
-                is ServiceResult.Success -> call.respond(res.auth)
+                is ServiceResult.Success -> call.respond(res.data)
                 is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
             }
+        }
+    }
+
+    // TODO: Protect this route (in router)
+    // TODO: Validate user is updating their own user
+    suspend fun updateUserProfile(call: ApplicationCall) = authService.updateUserProfile(call.receive()).let { res ->
+        when (res) {
+            is ServiceResult.Success -> call.respond(res.data)
+            is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
         }
     }
 }

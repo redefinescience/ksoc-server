@@ -2,7 +2,6 @@ package com.kotlineering.ksoc.server.domain.repository
 
 import com.kotlineering.ksoc.server.util.UUIDSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -95,6 +94,34 @@ class UserRepository {
             UsersInfo.id eq userId
         }.firstOrNull()?.let {
             UserInfo.fromResultRow(it)
+        }
+    }
+
+    fun upsertUserInfo(
+        info: UserInfo
+    ) = transaction {
+        UsersInfo.select {
+            UsersInfo.id eq info.id
+        }.firstOrNull()?.let {
+            UsersInfo.update({
+                UsersInfo.id eq info.id
+            }) { row ->
+                row[email] = info.email
+                row[displayName] = info.displayName
+                row[image] = info.image
+            }
+        } ?: let {
+            UsersInfo.insert { row ->
+                row[id] = info.id
+                row[email] = info.email
+                row[displayName] = info.displayName
+                row[image] = info.image
+            }
+        }
+        UsersInfo.select {
+            UsersInfo.id eq info.id
+        }.firstOrNull()?.let { row ->
+            UserInfo.fromResultRow(row)
         }
     }
 }

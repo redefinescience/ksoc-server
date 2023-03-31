@@ -1,9 +1,6 @@
 package com.kotlineering.ksoc.server.koin
 
-import com.kotlineering.ksoc.server.koin.modules.controllerModule
-import com.kotlineering.ksoc.server.koin.modules.remoteModule
-import com.kotlineering.ksoc.server.koin.modules.repositoryModule
-import com.kotlineering.ksoc.server.koin.modules.serviceModule
+import com.kotlineering.ksoc.server.koin.modules.*
 import org.koin.core.context.startKoin
 
 fun initKoin() = startKoin {
@@ -11,6 +8,7 @@ fun initKoin() = startKoin {
         repositoryModule(),
         serviceModule(),
         controllerModule(),
-        remoteModule()
+        remoteModule(),
+        utilModule()
     )
 }
