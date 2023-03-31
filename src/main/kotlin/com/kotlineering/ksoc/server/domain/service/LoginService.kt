@@ -20,17 +20,14 @@ class LoginService(
             idToken.sub
         )
 
-        // TODO: we also want to send back UserInfo, if it exists
-        // This way we can know the three states in the clients
-        // Not logged in, Logged In-No-Profile, or Logged In With Completed Profile
-
         ServiceResult.Success(
             AuthInfo(
-                userId,
+                userId.toString(),
                 "1234",
                 Instant.now().plusSeconds(60),
                 "4321",
-                Instant.now().plusSeconds(300)
+                Instant.now().plusSeconds(300),
+                userRepository.getUserInfo(userId)
             )
         )
     } ?: ServiceResult.Failure

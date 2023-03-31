@@ -1,5 +1,8 @@
 package com.kotlineering.ksoc.server.domain.repository
 
+import com.kotlineering.ksoc.server.util.UUIDSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -10,12 +13,23 @@ data class User(
     val oidSub: String
 )
 
+@Serializable
 data class UserInfo(
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val email: String,
     val displayName: String,
-    val image: String
-)
+    val image: String?
+) {
+    companion object {
+        fun fromResultRow(resultRow: ResultRow) = UserInfo(
+            resultRow[UsersInfo.id],
+            resultRow[UsersInfo.email],
+            resultRow[UsersInfo.displayName],
+            resultRow[UsersInfo.image]
+        )
+    }
+}
 
 internal object Users : Table() {
     val id = uuid("id")
@@ -33,7 +47,7 @@ internal object UsersInfo : Table() {
     val id = uuid("id")
     val email = varchar("email", 128)
     val displayName = varchar("display_name", 128)
-    val image = varchar("image", 256)
+    val image = varchar("image", 256).nullable()
 
     override val primaryKey = PrimaryKey(id)
 
@@ -57,12 +71,12 @@ class UserRepository {
 
     fun getOrCreateUserId(
         iss: String, sub: String
-    ): String = transaction {
+    ): UUID = transaction {
         Users.select {
             Users.oidIss eq iss
             Users.oidSub eq sub
         }.map {
-            it[Users.id].toString()
+            it[Users.id]
         }.firstOrNull() ?: let {
             val uuid = UUID.randomUUID()
             Users.insert { row ->
@@ -70,7 +84,17 @@ class UserRepository {
                 row[oidIss] = iss
                 row[oidSub] = sub
             }
-            return@let uuid.toString()
+            return@let uuid
+        }
+    }
+
+    fun getUserInfo(
+        userId: UUID
+    ): UserInfo? = transaction {
+        UsersInfo.select {
+            Users.id eq userId
+        }.firstOrNull()?.let {
+            UserInfo.fromResultRow(it)
         }
     }
 }

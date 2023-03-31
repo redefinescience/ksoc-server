@@ -1,5 +1,6 @@
 package com.kotlineering.ksoc.server.web.controllers
 
+import com.kotlineering.ksoc.server.domain.repository.UserInfo
 import com.kotlineering.ksoc.server.domain.service.ServiceResult
 import com.kotlineering.ksoc.server.domain.service.LoginService
 import com.kotlineering.ksoc.server.util.InstantSerializer
@@ -10,7 +11,7 @@ import kotlinx.serialization.Serializable
 import java.time.Instant
 
 @Serializable
-data class LoginFrom(
+data class LoginRequest(
     val type: String,
     val code: String
 )
@@ -23,13 +24,14 @@ data class AuthInfo(
     val bearerExpiry: Instant,
     val refresh: String,
     @Serializable(with = InstantSerializer::class)
-    val refreshExpiry: Instant
+    val refreshExpiry: Instant,
+    val userInfo: UserInfo?
 )
 
 class LoginController(
     private val loginService: LoginService,
 ) {
-    suspend fun login(call: ApplicationCall) = call.receive<LoginFrom>().let { req ->
+    suspend fun login(call: ApplicationCall) = call.receive<LoginRequest>().let { req ->
         loginService.loginWithOidcCode(req.type, req.code).let { res ->
             when (res) {
                 is ServiceResult.Success -> call.respond(res.auth)
