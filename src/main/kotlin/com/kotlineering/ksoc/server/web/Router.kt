@@ -1,6 +1,7 @@
 package com.kotlineering.ksoc.server.web
 
 import com.kotlineering.ksoc.server.web.controllers.AuthController
+import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 
 fun Routing.auth(authController: AuthController) {
@@ -8,6 +9,11 @@ fun Routing.auth(authController: AuthController) {
         post { authController.authorizeUser(this.context) }
     }
     route("/profile") {
-        put { authController.updateUserProfile(this.context) }
+        authenticate {
+            put { authController.updateUserProfile(this.context) }
+        }
+    }
+    route("/refresh") {
+        post { authController.refresh(this.context) }
     }
 }

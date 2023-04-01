@@ -4,6 +4,7 @@ import com.kotlineering.ksoc.server.koin.initKoin
 import io.ktor.server.application.*
 import com.kotlineering.ksoc.server.plugins.*
 import com.kotlineering.ksoc.server.web.auth
+import com.kotlineering.ksoc.server.web.configureSecurity
 import io.ktor.server.routing.*
 import org.koin.core.Koin
 
@@ -19,6 +20,7 @@ fun main(args: Array<String>): Unit {
 fun Application.module() {
     configureSerialization()
     configureDatabases()
+    configureSecurity()
 
     routing {
         auth(getKoin().get())

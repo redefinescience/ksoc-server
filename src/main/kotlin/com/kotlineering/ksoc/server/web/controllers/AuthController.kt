@@ -4,7 +4,11 @@ import com.kotlineering.ksoc.server.domain.repository.UserInfo
 import com.kotlineering.ksoc.server.domain.service.ServiceResult
 import com.kotlineering.ksoc.server.domain.service.AuthService
 import com.kotlineering.ksoc.server.util.InstantSerializer
+import com.kotlineering.ksoc.server.util.JwtProvider
+import com.kotlineering.ksoc.server.util.checkUserId
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.serialization.Serializable
@@ -40,12 +44,42 @@ class AuthController(
         }
     }
 
-    // TODO: Protect this route (in router)
-    // TODO: Validate user is updating their own user
-    suspend fun updateUserProfile(call: ApplicationCall) = authService.updateUserProfile(call.receive()).let { res ->
-        when (res) {
-            is ServiceResult.Success -> call.respond(res.data)
-            is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
-        }
+    suspend fun updateUserProfile(
+        call: ApplicationCall
+    ) = call.receive<UserInfo>().let { body ->
+        authService.takeIf {
+            call.authentication.checkUserId(body.id.toString())
+        }?.let {
+            authService.updateUserProfile(body).let { res ->
+                when (res) {
+                    is ServiceResult.Success -> call.respond(res.data)
+                    is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
+                }
+            }
+        } ?: call.respond(HttpStatusCode.Unauthorized)
     }
+
+    data class RefreshRequest(
+        val bearer: String,
+        val refresh: String
+    )
+    suspend fun refresh(
+        call: ApplicationCall
+    ) = call.receive<RefreshRequest>().let { body ->
+        try { JwtProvider.verifier.verify(body.bearer) }
+        catch(t: Throwable) { null }?.let { decodedBearer ->
+            try { JwtProvider.verifier.verify(body.refresh) }
+            catch(t: Throwable) { null }?.let { decodedRefresh ->
+                authService.refresh(
+                    decodedBearer,
+                    decodedRefresh
+                )?.also { res ->
+                    when (res) {
+                        is ServiceResult.Success -> call.respond(res.data)
+                        is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
+                    }
+                }
+            }
+        }
+    } ?: call.respond(HttpStatusCode.Unauthorized)
 }
