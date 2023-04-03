@@ -10,7 +10,7 @@ fun Application.configureSecurity() {
     authentication {
         jwt {
             verifier(JwtProvider.verifier)
-            authSchemes("Token")
+            authSchemes("Bearer")
             validate { credential ->
                 credential.payload.takeIf {
                     it.claims.contains("userId") && it.claims.contains("match")
