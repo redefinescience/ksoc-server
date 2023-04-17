@@ -59,13 +59,15 @@ class AuthController(
         } ?: call.respond(HttpStatusCode.Unauthorized)
     }
 
-    data class RefreshRequest(
+    @Serializable
+    data class TokenRequest(
         val bearer: String,
         val refresh: String
     )
+
     suspend fun refresh(
         call: ApplicationCall
-    ) = call.receive<RefreshRequest>().let { body ->
+    ) = call.receive<TokenRequest>().let { body ->
         try { JwtProvider.verifier.verify(body.bearer) }
         catch(t: Throwable) { null }?.let { decodedBearer ->
             try { JwtProvider.verifier.verify(body.refresh) }

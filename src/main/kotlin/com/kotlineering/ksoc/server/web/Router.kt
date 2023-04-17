@@ -8,12 +8,20 @@ fun Routing.auth(authController: AuthController) {
     route("/authorize") {
         post { authController.authorizeUser(this.context) }
     }
+
+    // TODO: this should be /profile/{userId} - also, authController/service should
+    // check the base users table to see if the user even exists ...
     route("/profile") {
         authenticate {
             put { authController.updateUserProfile(this.context) }
         }
     }
+
     route("/refresh") {
         post { authController.refresh(this.context) }
+    }
+
+    route("/revoke") {
+        post { } // todo:
     }
 }
