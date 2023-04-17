@@ -11,7 +11,7 @@ fun Routing.auth(authController: AuthController) {
 
     // TODO: this should be /profile/{userId} - also, authController/service should
     // check the base users table to see if the user even exists ...
-    route("/profile") {
+    route("/profile/{userId}") {
         authenticate {
             put { authController.updateUserProfile(this.context) }
         }

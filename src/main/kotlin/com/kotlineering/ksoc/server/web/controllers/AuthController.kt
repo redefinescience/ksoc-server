@@ -39,7 +39,7 @@ class AuthController(
         authService.loginWithOidcCode(req.type, req.code).let { res ->
             when (res) {
                 is ServiceResult.Success -> call.respond(res.data)
-                is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
+                else -> call.respond(res.statusCode())
             }
         }
     }
@@ -48,13 +48,14 @@ class AuthController(
         call: ApplicationCall
     ) = call.receive<UserInfo>().let { body ->
         authService.takeIf {
-            call.authentication.checkUserId(body.id.toString())
+            body.id.toString().let { userId ->
+                call.authentication.checkUserId(userId) && userId == call.parameters["userId"]
+            }
         }?.let {
             authService.updateUserProfile(body).let { res ->
                 when (res) {
                     is ServiceResult.Success -> call.respond(res.data)
-                    is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
-                }
+                    else -> call.respond(res.statusCode())                }
             }
         } ?: call.respond(HttpStatusCode.Unauthorized)
     }
@@ -78,8 +79,7 @@ class AuthController(
                 )?.also { res ->
                     when (res) {
                         is ServiceResult.Success -> call.respond(res.data)
-                        is ServiceResult.Failure -> call.respond(500) // TODO: beef this up
-                    }
+                        else -> call.respond(res.statusCode())                    }
                 }
             }
         }

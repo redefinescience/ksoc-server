@@ -10,7 +10,15 @@ data class User(
     val id: UUID,
     val oidIss: String,
     val oidSub: String
-)
+) {
+    companion object {
+        fun fromResultRow(resultRow: ResultRow) = User(
+            resultRow[Users.id],
+            resultRow[Users.oidIss],
+            resultRow[Users.oidSub]
+        )
+    }
+}
 
 @Serializable
 data class UserInfo(
@@ -68,12 +76,13 @@ class UserRepository {
         }
     }
 
-    fun getOrCreateUserId(
+    fun getOrCreateUser(
         iss: String, sub: String
     ): UUID = transaction {
         Users.select {
-            Users.oidIss eq iss
-            Users.oidSub eq sub
+            Users.oidIss.eq(iss).and {
+                Users.oidSub.eq(sub)
+            }
         }.map {
             it[Users.id]
         }.firstOrNull() ?: let {
@@ -84,6 +93,16 @@ class UserRepository {
                 row[oidSub] = sub
             }
             return@let uuid
+        }
+    }
+
+    fun getUser(
+        userId: UUID
+    ): User? = transaction {
+        Users.select {
+            Users.id eq userId
+        }.firstOrNull()?.let {
+            User.fromResultRow(it)
         }
     }
 
@@ -100,28 +119,26 @@ class UserRepository {
     fun upsertUserInfo(
         info: UserInfo
     ) = transaction {
-        UsersInfo.select {
-            UsersInfo.id eq info.id
-        }.firstOrNull()?.let {
-            UsersInfo.update({
-                UsersInfo.id eq info.id
-            }) { row ->
-                row[email] = info.email
-                row[displayName] = info.displayName
-                row[image] = info.image
-            }
-        } ?: let {
-            UsersInfo.insert { row ->
+        getUser(info.id)?.let {
+            getUserInfo(info.id)?.let {
+                UsersInfo.update({
+                    UsersInfo.id eq info.id
+                }) { row ->
+                    row[email] = info.email
+                    row[displayName] = info.displayName
+                    row[image] = info.image
+                }
+            } ?: UsersInfo.insert { row ->
                 row[id] = info.id
                 row[email] = info.email
                 row[displayName] = info.displayName
                 row[image] = info.image
             }
-        }
-        UsersInfo.select {
-            UsersInfo.id eq info.id
-        }.firstOrNull()?.let { row ->
-            UserInfo.fromResultRow(row)
+            UsersInfo.select {
+                UsersInfo.id eq info.id
+            }.firstOrNull()?.let { row ->
+                UserInfo.fromResultRow(row)
+            }
         }
     }
 }

@@ -26,14 +26,14 @@ class AuthService(
         }?.let {
             jwtProvider.createTokens(decodedBearer.claims["userId"]!!.asString())?.let {
                 ServiceResult.Success(it)
-            } ?: ServiceResult.Failure
+            } ?: ServiceResult.Failure()
         }
     }
 
     fun updateUserProfile(info: UserInfo) =
         userRepository.upsertUserInfo(info)?.let {
             ServiceResult.Success(info)
-        } ?: ServiceResult.Failure
+        } ?: ServiceResult.NotFound
 
     suspend fun loginWithOidcCode(
         type: String, code: String
@@ -41,7 +41,7 @@ class AuthService(
         "microsoft" -> loginRemoteApi.idTokenFromMicrosoft(code)
         else -> null
     }?.let { idToken ->
-        userRepository.getOrCreateUserId(
+        userRepository.getOrCreateUser(
             idToken.iss,
             idToken.sub
         ).let { userId ->
@@ -53,5 +53,5 @@ class AuthService(
                 ServiceResult.Success(it)
             }
         }
-    } ?: ServiceResult.Failure
+    } ?: ServiceResult.Failure()
 }
